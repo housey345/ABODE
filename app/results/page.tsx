@@ -64,8 +64,9 @@ function ResultsContent() {
         style={{ borderBottom: "1px solid rgba(200,160,102,0.18)" }}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3 sm:gap-5">
-          <Link href="/" className="shrink-0">
-            <Image src="/images/logo_abode.svg" width={36} height={36} alt="ABODE" priority />
+          <Link href="/" className="shrink-0 flex items-center gap-2">
+            <Image src="/images/logo_icon.svg" width={32} height={32} alt="" priority />
+            <Image src="/images/logo_text.svg" width={88} height={18} alt="ABODE" priority className="hidden sm:block" />
           </Link>
 
           <span className="hidden md:block h-6 w-px bg-white/10 mx-1" />

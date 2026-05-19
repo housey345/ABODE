@@ -347,8 +347,9 @@ export default function HomePage() {
 
 function AbodeLogo() {
   return (
-    <Link href="/" className="flex items-center justify-center">
-      <Image src="/images/logo_abode.svg" width={52} height={52} alt="ABODE" priority />
+    <Link href="/" className="flex items-center gap-3 justify-center">
+      <Image src="/images/logo_icon.svg" width={48} height={48} alt="" priority />
+      <Image src="/images/logo_text.svg" width={120} height={24} alt="ABODE" priority />
     </Link>
   );
 }
@@ -469,8 +470,9 @@ function Footer() {
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-14 pb-14 border-b border-white/[0.07]">
           <div className="col-span-2 lg:col-span-1">
-            <div className="flex flex-col items-start gap-2">
-              <Image src="/images/logo_abode.svg" width={48} height={48} alt="ABODE" />
+            <div className="flex items-center gap-2.5">
+              <Image src="/images/logo_icon.svg" width={40} height={40} alt="" />
+              <Image src="/images/logo_text.svg" width={100} height={20} alt="ABODE" />
             </div>
             <p className="mt-6 text-white/45 text-[13px] font-sans font-light leading-relaxed max-w-xs">
               All new build homes in Scotland. Found, listened-for, by Isla.

@@ -40,8 +40,9 @@ export default function PropertyPage() {
         style={{ borderBottom: "1px solid rgba(200,160,102,0.18)" }}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/">
-            <Image src="/images/logo_abode.svg" width={36} height={36} alt="ABODE" priority />
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/images/logo_icon.svg" width={32} height={32} alt="" priority />
+            <Image src="/images/logo_text.svg" width={88} height={18} alt="ABODE" priority className="hidden sm:block" />
           </Link>
           <button
             onClick={() => router.back()}
