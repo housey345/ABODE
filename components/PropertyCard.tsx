@@ -88,9 +88,9 @@ export default function PropertyCard({ property: p, explanation, index = 0 }: Pr
 
           {/* Amenities — compact spec strip */}
           <div className="grid grid-cols-3 gap-3">
-            <SpecCell label="School" mins={p.nearest_school.mins} />
-            <SpecCell label="Station" mins={p.nearest_station.mins} />
-            <SpecCell label="Park" mins={p.nearest_park.mins} />
+            <SpecCell label="School" mins={p.nearest_school?.mins} />
+            <SpecCell label="Station" mins={p.nearest_station?.mins} />
+            <SpecCell label="Park" mins={p.nearest_park?.mins} />
           </div>
 
           {/* Hover-revealed CTA arrow */}
@@ -110,13 +110,17 @@ export default function PropertyCard({ property: p, explanation, index = 0 }: Pr
   );
 }
 
-function SpecCell({ label, mins }: { label: string; mins: number }) {
-  const isClose = mins <= 10;
+function SpecCell({ label, mins }: { label: string; mins?: number }) {
+  const isClose = mins != null && mins <= 10;
   return (
     <div className="flex flex-col">
       <span className="eyebrow text-brand-grey mb-1">{label}</span>
       <span className={`font-display font-light text-lg leading-none ${isClose ? "text-brand-gold" : "text-brand-charcoal"}`}>
-        {mins}<span className="text-[11px] font-sans font-normal tracking-wider ml-0.5">min</span>
+        {mins != null ? (
+          <>{mins}<span className="text-[11px] font-sans font-normal tracking-wider ml-0.5">min</span></>
+        ) : (
+          <span className="text-brand-grey text-sm">—</span>
+        )}
       </span>
     </div>
   );

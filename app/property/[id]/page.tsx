@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import ScrollToTop from "@/components/ScrollToTop";
 import type { Property } from "@/lib/properties";
 
 export default function PropertyPage() {
@@ -105,9 +106,9 @@ export default function PropertyPage() {
             <section>
               <SectionHead num="02" label="The Surroundings" />
               <div className="mt-6 divide-y divide-brand-stone">
-                <AmenityRow category="Nearest School" name={p.nearest_school.name} km={p.nearest_school.km} mins={p.nearest_school.mins} />
-                <AmenityRow category="Nearest Station" name={p.nearest_station.name} km={p.nearest_station.km} mins={p.nearest_station.mins} />
-                <AmenityRow category="Nearest Park" name={p.nearest_park.name} km={p.nearest_park.km} mins={p.nearest_park.mins} />
+                <AmenityRow category="Nearest School" name={p.nearest_school?.name} km={p.nearest_school?.km} mins={p.nearest_school?.mins} />
+                <AmenityRow category="Nearest Station" name={p.nearest_station?.name} km={p.nearest_station?.km} mins={p.nearest_station?.mins} />
+                <AmenityRow category="Nearest Park" name={p.nearest_park?.name} km={p.nearest_park?.km} mins={p.nearest_park?.mins} />
               </div>
             </section>
 
@@ -210,6 +211,7 @@ export default function PropertyPage() {
           )}
         </div>
       </div>
+      <ScrollToTop />
     </main>
   );
 }
@@ -329,23 +331,22 @@ function SpecBox({ label, value, unit, highlight }: { label: string; value: stri
 
 function AmenityRow({ category, name, km, mins }: {
   category: string;
-  name: string;
-  km: number;
-  mins: number;
+  name?: string;
+  km?: number;
+  mins?: number;
 }) {
-  const isClose = km <= 0.5;
+  const isClose = km != null && km <= 0.5;
   return (
     <div className="flex items-center gap-4 py-5 lg:py-6">
       <div className="flex-1 min-w-0">
         <p className="eyebrow text-brand-grey mb-2">{category}</p>
-        <p className="font-display font-light text-xl lg:text-2xl text-brand-charcoal leading-tight truncate">{name}</p>
+        <p className="font-display font-light text-xl lg:text-2xl text-brand-charcoal leading-tight truncate">{name ?? "—"}</p>
       </div>
       <div className="text-right shrink-0">
         <p className={`font-display font-light text-3xl lg:text-4xl leading-none ${isClose ? "text-brand-gold" : "text-brand-charcoal"}`}>
-          {mins}
-          <span className="text-xs font-sans font-normal tracking-wider ml-1">min</span>
+          {mins != null ? <>{mins}<span className="text-xs font-sans font-normal tracking-wider ml-1">min</span></> : "—"}
         </p>
-        <p className="text-brand-grey text-xs font-sans tracking-wide mt-2">{km} km</p>
+        <p className="text-brand-grey text-xs font-sans tracking-wide mt-2">{km != null ? `${km} km` : ""}</p>
       </div>
     </div>
   );

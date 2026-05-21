@@ -47,9 +47,11 @@ Each property starts at 100 and is adjusted by hard-coded weights for bedroom ma
 
 The visual system is editorial / architectural luxury, codified in `abode_brand_spec.md`. Tailwind tokens in `tailwind.config.ts` mirror it:
 
-- **Colours:** `brand-charcoal` `#1B2B2B`, `brand-gold` `#C8A066`, `brand-ivory` `#F6F3EF`, `brand-stone` `#E7E1D9`, `brand-grey` `#6B6B6B`. Also exposed as CSS vars (`--abode-gold`, etc.) in `app/globals.css`.
+- **Colours:** `brand-charcoal` `#1B2B2B`, `brand-gold` `#C8A066`, `brand-gold-light` `#D4B07A` (hover states), `brand-ivory` `#F6F3EF`, `brand-stone` `#E7E1D9`, `brand-grey` `#6B6B6B`. Also exposed as CSS vars (`--abode-gold`, etc.) in `app/globals.css`. The config also defines legacy aliases (`brand-dark`, `brand-navy`, `brand-cream`, `brand-muted`) — use the canonical names above in new code.
 - **Type:** `font-display` = Cormorant Garamond (headlines, italics for the gold accent words like *perfect*), `font-sans` = Montserrat (UI, eyebrows, all caps with wide tracking). Both load via `next/font/google` in `app/layout.tsx` as CSS variables `--font-cormorant` / `--font-montserrat`.
-- **Utilities in `globals.css`:** `.eyebrow` (10px uppercase, 0.3em tracking), `.hairline` / `.hairline-dark` / `.hairline-gold` (1px rules), `.grain` (SVG-noise overlay on dark surfaces), `.gold-underline` (animated hover), `.rise-in` (staggered entrance — use `animationDelay` for sequencing).
+- **Utilities in `globals.css`:** `.eyebrow` (10px uppercase, 0.3em tracking), `.hairline` / `.hairline-dark` / `.hairline-gold` (1px rules), `.grain` (SVG-noise overlay on dark surfaces), `.gold-underline` (animated hover), `.rise-in` (staggered entrance — use `animationDelay` for sequencing), `.shimmer-bg` (skeleton loading pulse), `.glass` / `.glass-light` (frosted-glass panel), `.vertical-rule` (rotated masthead label), `.scrollbar-none` (hide scrollbar on chip rails), `.text-gradient` (ivory-to-gold gradient text).
+- **Tailwind animations:** `animate-fade-in`, `animate-slide-up` (both 0.9 s, used for page elements), `animate-shimmer` (loading skeletons — prefer `.shimmer-bg` utility instead), `animate-ken-burns` (hero image slow-zoom), `animate-pulse-ring` (voice recording indicator). Stagger cards with inline `animationDelay` and `animationFillMode: "both"`.
+- **Letter-spacing tokens:** `tracking-editorial` (0.32em), `tracking-wordmark` (0.4em).
 - **Rules:** square corners only (no `rounded-*`), large whitespace, thin dividers, no playful easing, no bounce, no neon gradients, no rounded consumer-tech UI. Section backgrounds rotate `ivory → white → stone → charcoal`.
 
 The AI assistant is named **Isla** in user-facing copy ("Ask Isla", "Isla is searching", "Isla, in residence"). Don't rename or genericise her.

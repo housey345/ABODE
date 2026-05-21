@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import PropertyCard from "@/components/PropertyCard";
+import ScrollToTop from "@/components/ScrollToTop";
 import type { Property } from "@/lib/properties";
 
 const VoiceSearch = dynamic(() => import("@/components/VoiceSearch"), { ssr: false });
@@ -116,6 +117,7 @@ function ResultsContent() {
           </>
         )}
       </div>
+      <ScrollToTop />
     </main>
   );
 }

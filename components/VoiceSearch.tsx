@@ -67,7 +67,7 @@ export default function VoiceSearch({ onTranscript, disabled, compact }: Props) 
           ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
         style={{ background: listening ? "#7A1515" : "#C8A066" }}
       >
-        {listening ? <WaveformIcon size={12} /> : <MicIcon size={14} />}
+        {listening ? <WaveformIcon size={12} /> : <span className="animate-pulse-ring inline-flex"><MicIcon size={14} /></span>}
       </button>
     );
   }
@@ -81,7 +81,7 @@ export default function VoiceSearch({ onTranscript, disabled, compact }: Props) 
         ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
       style={{ background: listening ? "#7A1515" : "#C8A066" }}
     >
-      {listening ? <WaveformIcon size={30} /> : <MicIcon size={30} />}
+      {listening ? <WaveformIcon size={30} /> : <span className="animate-pulse-ring inline-flex"><MicIcon size={30} /></span>}
       <span className="text-white text-xs font-sans font-semibold tracking-[0.22em] uppercase">
         {listening ? "Listening — Tap to Stop" : "Ask Isla"}
       </span>

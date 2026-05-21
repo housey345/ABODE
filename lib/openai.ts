@@ -1,7 +1,12 @@
-import type { SearchFilters } from "./properties";
+import type { SearchFilters, Property } from "./properties";
 
 export interface ParsedIntent extends SearchFilters {
   summary?: string;
+}
+
+export interface LaravelSearchResult {
+  property: Property;
+  distances: { school?: number; station?: number; park?: number; supermarket?: number };
 }
 
 const SYSTEM_PROMPT = `You are a property search assistant for ABODE, a new-build home platform in Edinburgh, Scotland.
@@ -93,4 +98,63 @@ function fallbackParse(query: string): ParsedIntent {
   intent.summary = summaryParts.length > 1 ? summaryParts.join(" ") : `Homes in Edinburgh matching "${query}"`;
 
   return intent;
+}
+
+export async function generateExplanations(
+  results: LaravelSearchResult[],
+  intent: ParsedIntent
+): Promise<string[]> {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey || apiKey === "your_openai_api_key_here" || results.length === 0) {
+    return results.map(() => "");
+  }
+
+  const propertySummaries = results
+    .map((r, i) => {
+      const d = r.distances;
+      const distParts = [
+        d.school != null ? `${Math.round(d.school)}m to school` : null,
+        d.station != null ? `${Math.round(d.station)}m to station` : null,
+        d.park != null ? `${Math.round(d.park)}m to park` : null,
+      ].filter(Boolean).join(", ");
+      return `${i + 1}. ${r.property.name} — ${r.property.bedrooms_text}, from £${r.property.price_min?.toLocaleString()}${distParts ? `, ${distParts}` : ""}`;
+    })
+    .join("\n");
+
+  const prompt = `You are a concierge for ABODE, a luxury new-homes platform in Edinburgh.
+Search intent: "${intent.summary ?? "Edinburgh homes"}".
+For each property below, write one brief sentence (max 15 words) explaining why it suits this search.
+Return a JSON object: { "explanations": ["sentence 1", "sentence 2", ...] }
+
+${propertySummaries}`;
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.4,
+        max_tokens: 512,
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!response.ok) return results.map(() => "");
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) return results.map(() => "");
+
+    const parsed = JSON.parse(content);
+    const explanations: string[] = parsed.explanations ?? [];
+    return results.map((_, i) => explanations[i] ?? "");
+  } catch {
+    return results.map(() => "");
+  }
 }

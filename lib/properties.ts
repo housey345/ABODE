@@ -20,9 +20,9 @@ export interface Property {
   lng: number;
   url: string;
   images: string[];
-  nearest_school: POIDistance;
-  nearest_station: POIDistance;
-  nearest_park: POIDistance;
+  nearest_school?: POIDistance;
+  nearest_station?: POIDistance;
+  nearest_park?: POIDistance;
   description?: string;
 }
 
@@ -313,7 +313,7 @@ export function searchProperties(filters: SearchFilters): SearchResult[] {
       }
     }
 
-    if (filters.near?.includes("school")) {
+    if (filters.near?.includes("school") && prop.nearest_school) {
       if (prop.nearest_school.km <= 0.5) {
         score += 40;
         reasons.push(`${prop.nearest_school.name} is just ${prop.nearest_school.mins} min walk`);
@@ -326,7 +326,7 @@ export function searchProperties(filters: SearchFilters): SearchResult[] {
       }
     }
 
-    if (filters.near?.includes("station") || filters.near?.includes("transport")) {
+    if ((filters.near?.includes("station") || filters.near?.includes("transport")) && prop.nearest_station) {
       if (prop.nearest_station.km <= 1.0) {
         score += 30;
         reasons.push(`${prop.nearest_station.name} station is ${prop.nearest_station.mins} min walk`);
@@ -336,7 +336,7 @@ export function searchProperties(filters: SearchFilters): SearchResult[] {
       }
     }
 
-    if (filters.near?.includes("park")) {
+    if (filters.near?.includes("park") && prop.nearest_park) {
       if (prop.nearest_park.km <= 0.5) {
         score += 25;
         reasons.push(`${prop.nearest_park.name} is just ${prop.nearest_park.mins} min walk`);
@@ -361,12 +361,13 @@ function buildExplanation(prop: Property, filters: SearchFilters, reasons: strin
   }
 
   const parts = reasons.slice(0, 3);
-  const schoolStr =
-    prop.nearest_school.km <= 1.0
+  const schoolStr = prop.nearest_school
+    ? (prop.nearest_school.km <= 1.0
       ? `within walking distance of ${prop.nearest_school.name}`
-      : `near ${prop.nearest_school.name}`;
+      : `near ${prop.nearest_school.name}`)
+    : null;
 
-  if (filters.near?.includes("school")) {
+  if (filters.near?.includes("school") && schoolStr && prop.nearest_school) {
     return `${prop.name} matches your search — it has ${parts.join(", ")}. Ideal for families, it is ${schoolStr} (${prop.nearest_school.mins} min).`;
   }
   return `${prop.name} is a great match — ${parts.join(", ")}. Located in ${prop.locality} by ${prop.developer}.`;

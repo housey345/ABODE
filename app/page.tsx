@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
 import { properties } from "@/lib/properties";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const VoiceSearch = dynamic(() => import("@/components/VoiceSearch"), { ssr: false });
 
@@ -341,6 +342,8 @@ export default function HomePage() {
 
       {/* ═════════ FOOTER ═════════ */}
       <Footer />
+
+      <ScrollToTop />
     </>
   );
 }
