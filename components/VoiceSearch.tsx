@@ -63,7 +63,7 @@ export default function VoiceSearch({ onTranscript, disabled, compact }: Props) 
         onClick={startListening}
         disabled={disabled}
         aria-label={listening ? "Stop listening" : "Start voice search"}
-        className={`relative flex items-center justify-center w-8 h-8 shrink-0 transition-colors duration-200 outline-none focus:outline-none
+        className={`relative flex items-center justify-center w-8 h-8 shrink-0 transition-colors duration-200 outline-none focus:outline-none rounded-full md:rounded-none
           ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
         style={{ background: listening ? "#7A1515" : "#C8A066" }}
       >
