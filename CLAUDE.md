@@ -13,7 +13,13 @@ npm run lint      # eslint (eslint-config-next)
 
 No test runner is configured.
 
-`OPENAI_API_KEY` lives in `.env.local` (Next.js server-side only — never expose with `NEXT_PUBLIC_`). If it's missing or the literal placeholder `your_openai_api_key_here`, `lib/openai.ts` silently falls back to a regex-based parser, so the app stays demoable without a key.
+**Env vars (all server-side only, never `NEXT_PUBLIC_`):**
+
+| Var | Purpose |
+|---|---|
+| `OPENAI_API_KEY` | Intent parsing + explanation generation. Missing → regex fallback, app stays demoable. |
+| `LARAVEL_API_BASE_URL` | Base URL of the Laravel backend (e.g. `https://api.abode.co.uk`). Absent → Phase 1 in-memory mode. |
+| `ABODE_API_TOKEN` | Shared bearer token for Next.js → Laravel calls. Required when `LARAVEL_API_BASE_URL` is set. |
 
 The `openai` npm package is listed in `package.json` but is **not currently used** — `lib/openai.ts` calls the REST API directly via `fetch`. It's kept for Phase 2, which needs the SDK's Realtime WebRTC client (`openai.beta.realtime`) for voice. Don't remove it.
 
@@ -28,8 +34,9 @@ This is **Phase 1** of ABODE: a single-process Next.js 15 App Router demo with a
 1. User submits a query (typed or voice) on `app/page.tsx` → `router.push('/results?q=...')`.
 2. `app/results/page.tsx` POSTs `{ query }` to `/api/search`.
 3. `app/api/search/route.ts` calls `parseIntent(query)` (`lib/openai.ts`, calls the OpenAI REST API directly via `fetch` using `gpt-4o-mini` with `response_format: json_object`, fallback to regex).
-4. Parsed `SearchFilters` (type defined in `lib/properties.ts`, not `lib/openai.ts`) are run through `searchProperties()` — a scoring pass over the static array, returning ranked `{ property, score, explanation }` with a built-in explanation string. The API returns at most 8 results.
-5. Results render via `components/PropertyCard.tsx`. The single property page `app/property/[id]/page.tsx` fetches `/api/property/[id]`, which just looks the ID up in the same in-memory array.
+4. **Phase 1 mode** (no `LARAVEL_API_BASE_URL`): Parsed `SearchFilters` are run through `searchProperties()` — a scoring pass over the static array, returning ranked `{ property, score, explanation }`. The API returns at most 8 results. **Phase 2 mode** (`LARAVEL_API_BASE_URL` + `ABODE_API_TOKEN` set): filters are forwarded to `POST {LARAVEL_BASE}/api/search`; the returned results are passed to `generateExplanations()` (a second `gpt-4o-mini` call that writes one sentence per property) before responding. Falls back to Phase 1 dataset on any Laravel error.
+5. Results render via `components/PropertyCard.tsx`. The single property page `app/property/[id]/page.tsx` fetches `/api/property/[id]`, which looks the ID up in the in-memory array (Phase 1) or forwards to `GET {LARAVEL_BASE}/api/property/{id}` (Phase 2).
+6. `app/api/enquiries/route.ts` — `POST /api/enquiries` proxies enquiry form submissions to `POST {LARAVEL_BASE}/api/enquiries`. Returns `503` if Laravel env vars are absent.
 
 `next.config.mjs` whitelists `www.newhomesforsale.co.uk` as a remote image hostname. Add any new external image sources there.
 
@@ -68,5 +75,6 @@ The AI assistant is named **Isla** in user-facing copy ("Ask Isla", "Isla is sea
 
 - `abode_claude_spec.md` — original Phase 1 brief (historical; the app now exceeds it).
 - `abode_phase2_spec.md` — authoritative spec for the Laravel/MariaDB/Realtime migration; read before any backend or voice work.
+- `abode_laravel_plan.md` — step-by-step migration plan for the separate `ABODE-laravel` repo (Cloudways/PHP deployment); explains route/component mapping and build phases.
 - `abode_brand_spec.md` — brand system source of truth.
 - `ABODE Brand Design V1 May 2026.pdf` — visual reference.
