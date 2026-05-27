@@ -48,9 +48,13 @@ export default function VoiceSearch({ onTranscript, disabled, compact }: Props) 
     recognition.maxAlternatives = 1;
     recognition.continuous = false;
     recognition.onstart = () => setListening(true);
-    recognition.onend = () => setListening(false);
-    recognition.onresult = (e) => { onTranscript(e.results[0][0].transcript); };
-    recognition.onerror = () => setListening(false);
+    recognition.onend = () => { setListening(false); recognitionRef.current = null; };
+    recognition.onresult = (e) => {
+      recognition.stop();
+      setListening(false);
+      onTranscript(e.results[0][0].transcript);
+    };
+    recognition.onerror = () => { setListening(false); recognitionRef.current = null; };
     recognitionRef.current = recognition;
     recognition.start();
   }, [listening, onTranscript]);
