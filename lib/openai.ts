@@ -1,4 +1,5 @@
 import type { SearchFilters, Property } from "./properties";
+import { ISLA } from "./persona";
 
 export interface ParsedIntent extends SearchFilters {
   summary?: string;
@@ -8,17 +9,6 @@ export interface LaravelSearchResult {
   property: Property;
   distances: { school?: number; station?: number; park?: number; supermarket?: number };
 }
-
-const SYSTEM_PROMPT = `You are a property search assistant for ABODE, a new-build home platform in Edinburgh, Scotland.
-Extract search intent from the user's natural language query and return a JSON object with these fields:
-- beds: number (bedrooms requested, e.g. 3)
-- max_price: number (maximum price in GBP, e.g. 500000)
-- min_price: number (minimum price if specified)
-- near: array of strings from ["school", "station", "park", "transport"]
-- keywords: array of relevant keywords from ["family", "commuter", "modern", "luxury", "apartment", "house"]
-- summary: a one-sentence friendly description of what the user is looking for
-
-Only include fields that are clearly specified or strongly implied. Return valid JSON only, no markdown.`;
 
 export async function parseIntent(query: string): Promise<ParsedIntent> {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -37,7 +27,7 @@ export async function parseIntent(query: string): Promise<ParsedIntent> {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: ISLA.searchSystemPrompt },
           { role: "user", content: query },
         ],
         temperature: 0.1,

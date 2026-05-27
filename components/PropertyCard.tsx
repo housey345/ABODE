@@ -26,9 +26,7 @@ export default function PropertyCard({ property: p, explanation, index = 0 }: Pr
       className="group block animate-slide-up"
       style={{ animationDelay: `${index * 90}ms`, animationFillMode: "both", opacity: 0 }}
     >
-      <article className="bg-white transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-24px_rgba(27,43,43,0.18)]"
-        style={{ border: "1px solid #E7E1D9" }}
-      >
+      <article className="bg-white border border-brand-stone transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-24px_rgba(27,43,43,0.18)]">
         {/* ── Image, no overlay — let the architecture speak ── */}
         <div className="relative aspect-[5/4] overflow-hidden bg-brand-stone">
           {heroImage ? (
@@ -54,8 +52,7 @@ export default function PropertyCard({ property: p, explanation, index = 0 }: Pr
 
           {/* Beds tag — gold, square */}
           <span
-            className="absolute bottom-3 right-3 text-brand-charcoal text-[10px] font-sans font-semibold tracking-[0.16em] uppercase px-2.5 py-1"
-            style={{ background: "#C8A066" }}
+            className="absolute bottom-3 right-3 bg-brand-gold text-brand-charcoal text-[10px] font-sans font-semibold tracking-[0.16em] uppercase px-2.5 py-1"
           >
             {bedsLabel}
           </span>

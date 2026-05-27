@@ -167,8 +167,8 @@ export default function PropertyPage() {
                 style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
               >
                 <svg width="22" height="22" viewBox="0 0 40 44" fill="none" className="shrink-0 mt-0.5">
-                  <path d="M20 3L37 16V41H3V16L20 3Z" stroke="#C8A066" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
-                  <circle cx="20" cy="20" r="3" stroke="#C8A066" strokeWidth="1.25" fill="none" />
+                  <path d="M20 3L37 16V41H3V16L20 3Z" stroke="var(--abode-gold)" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+                  <circle cx="20" cy="20" r="3" stroke="var(--abode-gold)" strokeWidth="1.25" fill="none" />
                 </svg>
                 <div>
                   <p className="eyebrow text-brand-gold mb-1.5">Concierge</p>
@@ -293,7 +293,7 @@ function Gallery({ images, active, onSelect, name }: {
                 className={`relative flex-shrink-0 w-20 h-14 overflow-hidden transition-all duration-500 ${
                   i === active ? "opacity-100" : "opacity-40 hover:opacity-80"
                 }`}
-                style={i === active ? { outline: "1px solid #C8A066", outlineOffset: "-1px" } : {}}
+                style={i === active ? { outline: "1px solid var(--abode-gold)", outlineOffset: "-1px" } : {}}
               >
                 <Image src={src} alt="" fill className="object-cover" sizes="80px" />
               </button>
@@ -359,8 +359,7 @@ function MapPreviewLight({ lat, lng, name }: { lat: number; lng: number; name: s
       href={mapUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="block relative h-56 lg:h-72 mt-6 group overflow-hidden"
-      style={{ border: "1px solid #E7E1D9", background: "#E7E1D9" }}
+      className="block relative h-56 lg:h-72 mt-6 group overflow-hidden border border-brand-stone bg-brand-stone"
     >
       {/* Tactile architectural grid pattern as map stand-in */}
       <div
@@ -374,7 +373,7 @@ function MapPreviewLight({ lat, lng, name }: { lat: number; lng: number; name: s
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-brand-charcoal">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.25" />
-          <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.25" fill="#C8A066" />
+          <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.25" fill="var(--abode-gold)" />
         </svg>
         <p className="font-display font-light text-xl text-brand-charcoal text-center px-6 leading-tight">{name}</p>
         <span className="text-[11px] font-sans tracking-[0.22em] uppercase text-brand-charcoal group-hover:text-brand-gold transition-colors duration-500 flex items-center gap-2">

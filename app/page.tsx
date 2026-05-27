@@ -128,7 +128,7 @@ export default function HomePage() {
             <p className="eyebrow text-white/35 mb-6">All New Build Homes in Scotland</p>
             <h1 className="font-display font-light text-[2.85rem] leading-[1.02] text-white tracking-tight">
               Find your{" "}
-              <em className="not-italic" style={{ color: "#C8A066" }}>perfect</em>
+              <em className="not-italic text-brand-gold">perfect</em>
               <br />new build.
             </h1>
             <p className="mt-5 text-white/45 text-[13px] font-sans leading-relaxed font-light max-w-xs mx-auto">
@@ -201,7 +201,7 @@ export default function HomePage() {
           >
             Ask Isla to find your
             <br />
-            <em className="not-italic italic" style={{ color: "#C8A066", fontStyle: "italic" }}>
+            <em className="not-italic italic text-brand-gold">
               perfect
             </em>{" "}
             new build home.
@@ -297,7 +297,7 @@ export default function HomePage() {
             <div>
               <p className="eyebrow text-brand-gold mb-5">The Selection · No. 01</p>
               <h2 className="font-display font-light text-4xl lg:text-6xl leading-[1.05] tracking-tight max-w-2xl">
-                A considered shortlist of <em className="italic" style={{ color: "#C8A066" }}>new developments</em>.
+                A considered shortlist of <em className="italic text-brand-gold">new developments</em>.
               </h2>
             </div>
             <p className="text-brand-grey text-sm lg:text-[15px] font-sans font-light leading-relaxed max-w-sm">

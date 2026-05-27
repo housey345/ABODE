@@ -193,8 +193,7 @@ function ConciergeNote({
 
   return (
     <div
-      className="relative bg-white p-8 lg:p-10 mb-10 lg:mb-14 animate-fade-in overflow-hidden"
-      style={{ border: "1px solid #E7E1D9" }}
+      className="relative bg-white border border-brand-stone p-8 lg:p-10 mb-10 lg:mb-14 animate-fade-in overflow-hidden"
     >
       {/* Left gold rule */}
       <div className="absolute left-0 top-0 bottom-0 w-px bg-brand-gold" />
@@ -256,7 +255,7 @@ function LoadingState() {
       <div className="h-6 w-48 shimmer-bg mt-10" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 lg:gap-8 mt-2">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="overflow-hidden" style={{ border: "1px solid #E7E1D9" }}>
+          <div key={i} className="overflow-hidden border border-brand-stone">
             <div className="aspect-[5/4] shimmer-bg" />
             <div className="p-5 bg-white space-y-3">
               <div className="h-3 w-1/3 shimmer-bg" />

@@ -87,7 +87,7 @@ export default function VoiceSearch({ onTranscript, disabled, compact }: Props) 
           aria-label={listening ? "Stop listening" : "Start voice search"}
           className={`relative flex items-center justify-center w-8 h-8 shrink-0 transition-colors duration-200 outline-none focus:outline-none rounded-full md:rounded-none
             ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-          style={{ background: errorMsg ? "#7A1515" : listening ? "#7A1515" : "#C8A066" }}
+          style={{ background: errorMsg || listening ? "var(--abode-error)" : "var(--abode-gold)" }}
         >
           {listening ? <WaveformIcon size={12} /> : <span className="animate-pulse-ring inline-flex"><MicIcon size={14} /></span>}
         </button>
@@ -111,7 +111,7 @@ export default function VoiceSearch({ onTranscript, disabled, compact }: Props) 
         aria-label={listening ? "Stop listening" : "Start voice search"}
         className={`relative flex flex-col items-center justify-center gap-3 w-20 h-20 rounded-full md:rounded-none md:w-full md:h-auto md:py-9 transition-colors duration-300 outline-none focus:outline-none
           ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-        style={{ background: listening ? "#7A1515" : "#C8A066" }}
+        style={{ background: listening ? "var(--abode-error)" : "var(--abode-gold)" }}
       >
         {listening ? <WaveformIcon size={30} /> : <span className="animate-pulse-ring inline-flex"><MicIcon size={30} /></span>}
         <span className="hidden md:inline text-white text-xs font-sans font-semibold tracking-[0.22em] uppercase">
