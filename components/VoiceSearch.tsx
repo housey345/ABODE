@@ -12,6 +12,10 @@ interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
 }
 
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
 interface SpeechRecognitionInstance extends EventTarget {
   lang: string;
   interimResults: boolean;
@@ -22,7 +26,7 @@ interface SpeechRecognitionInstance extends EventTarget {
   onstart: (() => void) | null;
   onend: (() => void) | null;
   onresult: ((e: SpeechRecognitionEvent) => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((e: SpeechRecognitionErrorEvent) => void) | null;
 }
 
 declare global {
@@ -35,6 +39,7 @@ declare global {
 export default function VoiceSearch({ onTranscript, disabled, compact }: Props) {
   const [listening, setListening] = useState(false);
   const [supported, setSupported] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
 
   const startListening = useCallback(() => {
@@ -50,11 +55,23 @@ export default function VoiceSearch({ onTranscript, disabled, compact }: Props) 
     recognition.onstart = () => setListening(true);
     recognition.onend = () => { setListening(false); recognitionRef.current = null; };
     recognition.onresult = (e) => {
+      const transcript = e.results[0]?.[0]?.transcript ?? "";
       recognition.stop();
       setListening(false);
-      onTranscript(e.results[0][0].transcript);
+      if (transcript.trim()) onTranscript(transcript.trim());
     };
-    recognition.onerror = () => { setListening(false); recognitionRef.current = null; };
+    recognition.onerror = (e) => {
+      setListening(false);
+      recognitionRef.current = null;
+      if (e.error === "not-allowed") {
+        setErrorMsg("Microphone access denied");
+      } else if (e.error === "network") {
+        setErrorMsg("Network error — try again");
+      } else if (e.error !== "no-speech") {
+        setErrorMsg("Voice search unavailable");
+      }
+      setTimeout(() => setErrorMsg(null), 3500);
+    };
     recognitionRef.current = recognition;
     recognition.start();
   }, [listening, onTranscript]);
@@ -63,23 +80,30 @@ export default function VoiceSearch({ onTranscript, disabled, compact }: Props) 
 
   if (compact) {
     return (
-      <button
-        onClick={startListening}
-        disabled={disabled}
-        aria-label={listening ? "Stop listening" : "Start voice search"}
-        className={`relative flex items-center justify-center w-8 h-8 shrink-0 transition-colors duration-200 outline-none focus:outline-none rounded-full md:rounded-none
-          ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-        style={{ background: listening ? "#7A1515" : "#C8A066" }}
-      >
-        {listening ? <WaveformIcon size={12} /> : <span className="animate-pulse-ring inline-flex"><MicIcon size={14} /></span>}
-      </button>
+      <div className="relative flex items-center">
+        <button
+          onClick={startListening}
+          disabled={disabled}
+          aria-label={listening ? "Stop listening" : "Start voice search"}
+          className={`relative flex items-center justify-center w-8 h-8 shrink-0 transition-colors duration-200 outline-none focus:outline-none rounded-full md:rounded-none
+            ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          style={{ background: errorMsg ? "#7A1515" : listening ? "#7A1515" : "#C8A066" }}
+        >
+          {listening ? <WaveformIcon size={12} /> : <span className="animate-pulse-ring inline-flex"><MicIcon size={14} /></span>}
+        </button>
+        {errorMsg && (
+          <span className="absolute left-10 top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] font-sans tracking-wide text-red-300 pointer-events-none">
+            {errorMsg}
+          </span>
+        )}
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col items-center w-full gap-4 md:gap-0">
       <span className="md:hidden text-white text-xs font-sans font-semibold tracking-[0.22em] uppercase">
-        {listening ? "Tap to Stop" : "Ask Isla"}
+        {errorMsg ? errorMsg : listening ? "Tap to Stop" : "Ask Isla"}
       </span>
       <button
         onClick={startListening}
@@ -91,7 +115,7 @@ export default function VoiceSearch({ onTranscript, disabled, compact }: Props) 
       >
         {listening ? <WaveformIcon size={30} /> : <span className="animate-pulse-ring inline-flex"><MicIcon size={30} /></span>}
         <span className="hidden md:inline text-white text-xs font-sans font-semibold tracking-[0.22em] uppercase">
-          {listening ? "Listening — Tap to Stop" : "Ask Isla"}
+          {errorMsg ?? (listening ? "Listening — Tap to Stop" : "Ask Isla")}
         </span>
       </button>
     </div>
