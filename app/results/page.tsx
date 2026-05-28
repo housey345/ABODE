@@ -36,6 +36,18 @@ function ResultsContent() {
   const [data, setData] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [islaVoiceText, setIslaVoiceText] = useState<string | null>(null);
+
+  // Read Isla's spoken response stored by VoiceSearch before navigation
+  useEffect(() => {
+    const stored = sessionStorage.getItem("isla_voice_response");
+    if (stored) {
+      setIslaVoiceText(stored);
+      sessionStorage.removeItem("isla_voice_response");
+    } else {
+      setIslaVoiceText(null);
+    }
+  }, [query]);
 
   useEffect(() => {
     if (!query) { router.push("/"); return; }
@@ -57,6 +69,10 @@ function ResultsContent() {
     if (text.trim()) router.push(`/results?q=${encodeURIComponent(text.trim())}`);
   };
 
+  const handleIslaVoiceText = (text: string) => {
+    if (text) sessionStorage.setItem("isla_voice_response", text);
+  };
+
   return (
     <main className="min-h-screen bg-brand-ivory">
       {/* ── Sticky header ── */}
@@ -72,7 +88,7 @@ function ResultsContent() {
 
           <span className="hidden md:block h-6 w-px bg-white/10 mx-1" />
 
-          <SearchBar initialQuery={query} onVoiceTranscript={handleVoiceTranscript} />
+          <SearchBar initialQuery={query} onVoiceTranscript={handleVoiceTranscript} onIslaText={handleIslaVoiceText} />
         </div>
       </header>
 
@@ -95,7 +111,7 @@ function ResultsContent() {
 
         {data && !loading && (
           <>
-            <ConciergeNote summary={data.intent.summary} query={query} count={data.total} intent={data.intent} />
+            <ConciergeNote summary={data.intent.summary} query={query} count={data.total} intent={data.intent} islaVoiceText={islaVoiceText ?? undefined} />
 
             {data.results.length === 0 ? (
               <NoResults query={query} />
@@ -133,12 +149,16 @@ export default function ResultsPage() {
 function SearchBar({
   initialQuery,
   onVoiceTranscript,
+  onIslaText,
 }: {
   initialQuery: string;
   onVoiceTranscript: (text: string) => void;
+  onIslaText?: (text: string) => void;
 }) {
   const router = useRouter();
   const [q, setQ] = useState(initialQuery);
+
+  useEffect(() => { setQ(initialQuery); }, [initialQuery]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,7 +171,7 @@ function SearchBar({
         className="flex items-center flex-1 min-w-0 h-full"
         style={{ border: "1px solid rgba(255,255,255,0.12)", borderRight: "none" }}
       >
-        <VoiceSearch onTranscript={onVoiceTranscript} compact />
+        <VoiceSearch onTranscript={onVoiceTranscript} onIslaText={onIslaText} compact />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -178,11 +198,13 @@ function ConciergeNote({
   query,
   count,
   intent,
+  islaVoiceText,
 }: {
   summary?: string;
   query: string;
   count: number;
   intent: SearchResponse["intent"];
+  islaVoiceText?: string;
 }) {
   const tags: string[] = [];
   if (intent.beds) tags.push(`${intent.beds} bed`);
@@ -206,11 +228,17 @@ function ConciergeNote({
 
         <div className="flex-1 min-w-0">
           <p className="font-display font-light text-[22px] sm:text-2xl lg:text-[28px] text-brand-charcoal leading-[1.32] tracking-tight">
-            I&apos;ve found {count} development{count !== 1 ? "s" : ""}{" "}
-            {summary ? (
-              <>matching {summary}.</>
+            {islaVoiceText ? (
+              <em className="not-italic">{islaVoiceText}</em>
             ) : (
-              <>for <em className="italic">&ldquo;{query}&rdquo;</em>.</>
+              <>
+                I&apos;ve found {count} development{count !== 1 ? "s" : ""}{" "}
+                {summary ? (
+                  <>matching {summary}.</>
+                ) : (
+                  <>for <em className="italic">&ldquo;{query}&rdquo;</em>.</>
+                )}
+              </>
             )}
           </p>
           {tags.length > 0 && (

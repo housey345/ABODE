@@ -37,3 +37,10 @@ Thumbs.db
 .vercel
 .env*.local
 .env*
+
+graphify-out/
+
+# local reference docs — not for the repo
+abode_repo_structure.md
+abode_laravel_plan.md
+.vscode/settings.json

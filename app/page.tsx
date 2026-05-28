@@ -38,6 +38,10 @@ export default function HomePage() {
     router.push(`/results?q=${encodeURIComponent(searchQuery)}`);
   };
 
+  const handleIslaVoiceText = (text: string) => {
+    if (text) sessionStorage.setItem("isla_voice_response", text);
+  };
+
   const handleVoiceTranscript = (text: string) => {
     setQuery(text);
     setTimeout(() => handleSearch(text), 300);
@@ -137,7 +141,7 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-col w-full rise-in" style={{ animationDelay: "180ms" }}>
-            <VoiceSearch onTranscript={handleVoiceTranscript} disabled={loading} />
+            <VoiceSearch onTranscript={handleVoiceTranscript} onIslaText={handleIslaVoiceText} disabled={loading} />
 
             <div className="flex items-center gap-4 my-7">
               <span className="flex-1 hairline-dark" />
@@ -229,7 +233,7 @@ export default function HomePage() {
                   boxShadow: "0 0 0 1px rgba(200,160,102,0.08), 0 8px 32px rgba(0,0,0,0.35)",
                 }}
               >
-                <VoiceSearch onTranscript={handleVoiceTranscript} disabled={loading} compact />
+                <VoiceSearch onTranscript={handleVoiceTranscript} onIslaText={handleIslaVoiceText} disabled={loading} compact />
                 <input
                   ref={desktopInputRef}
                   value={query}
