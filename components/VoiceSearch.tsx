@@ -6,12 +6,9 @@ interface Props {
   onTranscript: (text: string) => void;
   onIslaText?: (text: string) => void;
   disabled?: boolean;
-  compact?: boolean;
 }
 
 type Status = "idle" | "connecting" | "listening" | "processing";
-
-const PLAYBACK_KEY = "isla_voice_playback";
 
 interface RealtimeEvent {
   type: string;
@@ -19,36 +16,21 @@ interface RealtimeEvent {
   transcript?: string;
 }
 
-export default function VoiceSearch({ onTranscript, onIslaText, disabled, compact }: Props) {
+export default function VoiceSearch({ onTranscript, onIslaText, disabled }: Props) {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [interimText, setInterimText] = useState("");
-  const [playbackEnabled, setPlaybackEnabled] = useState(false);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const userTranscriptRef = useRef<string>("");
   const interimRef = useRef<string>("");
   const islaTextRef = useRef<string>("");
-  const playbackRef = useRef(false);
   const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    console.log("[Isla] VoiceSearch mounted, compact:", compact);
-    const stored = localStorage.getItem(PLAYBACK_KEY);
-    const enabled = stored === "1";
-    playbackRef.current = enabled;
-    setPlaybackEnabled(enabled);
-  }, [compact]);
-
-  const togglePlayback = useCallback(() => {
-    const next = !playbackRef.current;
-    playbackRef.current = next;
-    setPlaybackEnabled(next);
-    localStorage.setItem(PLAYBACK_KEY, next ? "1" : "0");
-    if (audioRef.current) audioRef.current.muted = !next;
+    console.log("[Isla] VoiceSearch mounted");
   }, []);
 
   const teardown = useCallback(() => {
@@ -59,7 +41,6 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled, compac
     dcRef.current?.close();
     pcRef.current?.close();
     streamRef.current?.getTracks().forEach(t => t.stop());
-    if (audioRef.current) { audioRef.current.srcObject = null; audioRef.current = null; }
     dcRef.current = null;
     pcRef.current = null;
     streamRef.current = null;
@@ -118,14 +99,6 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled, compac
       pc.oniceconnectionstatechange = () => console.log("[Isla] ICE:", pc.iceConnectionState);
       pc.onconnectionstatechange = () => console.log("[Isla] PC:", pc.connectionState);
 
-      // Play Isla's spoken response through a detached Audio element (muted when playback disabled)
-      pc.ontrack = (e) => {
-        if (!audioRef.current) audioRef.current = document.createElement("audio");
-        audioRef.current.autoplay = true;
-        audioRef.current.muted = !playbackRef.current;
-        audioRef.current.srcObject = e.streams[0];
-      };
-
       // 4. Data channel — shared message handler used for both browser- and server-created channels
       const onDcMessage = (e: MessageEvent) => {
         const ev = JSON.parse(e.data as string) as RealtimeEvent;
@@ -136,10 +109,10 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled, compac
           dcRef.current?.send(JSON.stringify({
             type: "session.update",
             session: {
+              modalities: ["text"],
               audio: {
                 input: { transcription: { model: "gpt-4o-mini-transcribe" } },
               },
-              ...(!playbackRef.current && { modalities: ["text"] }),
             },
           }));
           setStatus("listening");
@@ -261,41 +234,9 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled, compac
     else teardown();
   };
 
-  if (compact) {
-    return (
-      <div className="relative flex items-center gap-1">
-        <button
-          type="button"
-          onClick={handleMicClick}
-          disabled={disabled || busy}
-          aria-label={listening ? "Stop listening" : "Start voice search"}
-          className={`relative flex items-center justify-center w-8 h-8 shrink-0 transition-colors duration-200 outline-none focus:outline-none rounded-full md:rounded-none
-            ${disabled || busy ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-          style={{ background: errorMsg || listening ? "var(--abode-error)" : "var(--abode-gold)" }}
-        >
-          {listening ? <WaveformIcon size={12} /> : processing ? <span className="w-3 h-3 border border-white border-t-transparent animate-spin rounded-full" /> : <span className="animate-pulse-ring inline-flex"><MicIcon size={14} /></span>}
-        </button>
-        <button
-          type="button"
-          onClick={togglePlayback}
-          aria-label={playbackEnabled ? "Disable voice reply" : "Enable voice reply"}
-          title={playbackEnabled ? "Voice reply on" : "Voice reply off"}
-          className="flex items-center justify-center w-6 h-6 shrink-0 transition-colors duration-200 outline-none focus:outline-none text-white/35 hover:text-white/70"
-        >
-          <SpeakerIcon muted={!playbackEnabled} size={13} />
-        </button>
-        {errorMsg && (
-          <span className="absolute left-16 top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] font-sans tracking-wide text-red-300 pointer-events-none">
-            {errorMsg}
-          </span>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col items-center w-full gap-4 md:gap-0">
-      <span className="md:hidden text-white text-xs font-sans font-semibold tracking-[0.22em] uppercase">
+    <div className="flex flex-col items-center gap-4">
+      <span className="text-white text-xs font-sans font-semibold tracking-[0.22em] uppercase">
         {errorMsg ?? (connecting ? "Connecting…" : processing ? "Searching…" : listening ? "Tap to Stop" : "Ask Isla")}
       </span>
       <button
@@ -303,29 +244,15 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled, compac
         onClick={handleMicClick}
         disabled={disabled || busy}
         aria-label={listening ? "Stop listening" : "Start voice search"}
-        className={`relative flex flex-col items-center justify-center gap-3 w-20 h-20 rounded-full md:rounded-none md:w-full md:h-auto md:py-9 transition-colors duration-300 outline-none focus:outline-none
+        className={`relative flex items-center justify-center w-20 h-20 rounded-full transition-colors duration-300 outline-none focus:outline-none
           ${disabled || busy ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
         style={{ background: listening ? "var(--abode-error)" : "var(--abode-gold)" }}
       >
         {listening ? <WaveformIcon size={30} /> : processing ? <span className="w-6 h-6 border-2 border-white border-t-transparent animate-spin rounded-full" /> : <span className="animate-pulse-ring inline-flex"><MicIcon size={30} /></span>}
-        <span className="hidden md:inline text-white text-xs font-sans font-semibold tracking-[0.22em] uppercase">
-          {errorMsg ?? (connecting ? "Connecting…" : processing ? "Searching…" : listening ? "Listening — Tap to Stop" : "Ask Isla")}
-        </span>
       </button>
       {interimText && (
         <p className="text-white/60 text-xs font-sans text-center max-w-xs truncate">{interimText}</p>
       )}
-      <button
-        type="button"
-        onClick={togglePlayback}
-        aria-label={playbackEnabled ? "Disable voice reply" : "Enable voice reply"}
-        className="flex items-center gap-2 text-white/35 hover:text-white/65 transition-colors duration-300 outline-none focus:outline-none"
-      >
-        <SpeakerIcon muted={!playbackEnabled} size={12} />
-        <span className="text-[10px] font-sans tracking-[0.18em] uppercase">
-          Voice reply {playbackEnabled ? "on" : "off"}
-        </span>
-      </button>
     </div>
   );
 }
@@ -337,22 +264,6 @@ function MicIcon({ size = 28 }: { size?: number }) {
       <path d="M5 10a7 7 0 0014 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <line x1="12" y1="21" x2="12" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function SpeakerIcon({ muted, size = 14 }: { muted: boolean; size?: number }) {
-  return muted ? (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="text-current">
-      <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor" />
-      <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  ) : (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="text-current">
-      <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor" />
-      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }

@@ -4,12 +4,9 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import PropertyCard from "@/components/PropertyCard";
 import ScrollToTop from "@/components/ScrollToTop";
 import type { Property } from "@/lib/properties";
-
-const VoiceSearch = dynamic(() => import("@/components/VoiceSearch"), { ssr: false });
 
 interface SearchResult {
   property: Property;
@@ -65,14 +62,6 @@ function ResultsContent() {
       .catch(() => { setError("Search failed. Please try again."); setLoading(false); });
   }, [query, router]);
 
-  const handleVoiceTranscript = (text: string) => {
-    if (text.trim()) router.push(`/results?q=${encodeURIComponent(text.trim())}`);
-  };
-
-  const handleIslaVoiceText = (text: string) => {
-    if (text) sessionStorage.setItem("isla_voice_response", text);
-  };
-
   return (
     <main className="min-h-screen bg-brand-ivory">
       {/* ── Sticky header ── */}
@@ -88,7 +77,7 @@ function ResultsContent() {
 
           <span className="hidden md:block h-6 w-px bg-white/10 mx-1" />
 
-          <SearchBar initialQuery={query} onVoiceTranscript={handleVoiceTranscript} onIslaText={handleIslaVoiceText} />
+          <SearchBar initialQuery={query} />
         </div>
       </header>
 
@@ -148,11 +137,9 @@ export default function ResultsPage() {
 
 function SearchBar({
   initialQuery,
-  onVoiceTranscript,
-  onIslaText,
 }: {
   initialQuery: string;
-  onVoiceTranscript: (text: string) => void;
+  onVoiceTranscript?: (text: string) => void;
   onIslaText?: (text: string) => void;
 }) {
   const router = useRouter();
@@ -171,7 +158,6 @@ function SearchBar({
         className="flex items-center flex-1 min-w-0 h-full"
         style={{ border: "1px solid rgba(255,255,255,0.12)", borderRight: "none" }}
       >
-        <VoiceSearch onTranscript={onVoiceTranscript} onIslaText={onIslaText} compact />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}

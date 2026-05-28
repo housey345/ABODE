@@ -223,35 +223,43 @@ export default function HomePage() {
             className="w-full max-w-2xl mt-12 rise-in"
             style={{ animationDelay: "340ms" }}
           >
-            <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
-              <div
-                className="flex items-center gap-4 px-6 py-5"
-                style={{
-                  background: "rgba(255,255,255,0.07)",
-                  backdropFilter: "blur(24px)",
-                  border: "1px solid rgba(200,160,102,0.32)",
-                  boxShadow: "0 0 0 1px rgba(200,160,102,0.08), 0 8px 32px rgba(0,0,0,0.35)",
-                }}
-              >
-                <VoiceSearch onTranscript={handleVoiceTranscript} onIslaText={handleIslaVoiceText} disabled={loading} compact />
-                <input
-                  ref={desktopInputRef}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Describe what you're looking for…"
-                  className="flex-1 bg-transparent text-white placeholder:text-white/45 text-[15px] font-sans outline-none tracking-wide"
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleSearch()}
-                  disabled={loading || !query.trim()}
-                  className="text-brand-gold/70 hover:text-brand-gold transition-colors duration-500 disabled:opacity-30 shrink-0"
-                >
-                  <SearchArrowIcon size={20} />
-                </button>
+            <div className="flex flex-col items-center gap-0">
+              <VoiceSearch onTranscript={handleVoiceTranscript} onIslaText={handleIslaVoiceText} disabled={loading} />
+
+              <div className="flex items-center gap-4 my-7 w-full">
+                <span className="flex-1 hairline-dark" />
+                <span className="text-white/30 text-[10px] font-sans tracking-[0.3em] uppercase">or type</span>
+                <span className="flex-1 hairline-dark" />
               </div>
-            </form>
+
+              <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="w-full">
+                <div
+                  className="flex items-center gap-3 px-6 py-5 w-full"
+                  style={{
+                    background: "rgba(255,255,255,0.07)",
+                    backdropFilter: "blur(24px)",
+                    border: "1px solid rgba(200,160,102,0.32)",
+                    boxShadow: "0 0 0 1px rgba(200,160,102,0.08), 0 8px 32px rgba(0,0,0,0.35)",
+                  }}
+                >
+                  <input
+                    ref={desktopInputRef}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Describe what you're looking for…"
+                    className="flex-1 bg-transparent text-white placeholder:text-white/45 text-[15px] font-sans outline-none tracking-wide"
+                    disabled={loading}
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading || !query.trim()}
+                    className="text-brand-gold/70 hover:text-brand-gold transition-colors duration-500 disabled:opacity-30 shrink-0"
+                  >
+                    <SearchArrowIcon size={20} />
+                  </button>
+                </div>
+              </form>
+            </div>
 
             <div className="mt-10">
               <p className="eyebrow text-white/30 mb-4">Suggested</p>
