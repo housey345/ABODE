@@ -44,3 +44,6 @@ graphify-out/
 abode_repo_structure.md
 abode_laravel_plan.md
 .vscode/settings.json
+
+# audit report — working document, not committed
+CODEBASE_AUDIT.md

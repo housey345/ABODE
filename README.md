@@ -6,7 +6,7 @@ AI-powered property search with an editorial luxury aesthetic. Users describe wh
 
 - **Next.js 15** (App Router) — TypeScript, Tailwind CSS
 - **OpenAI** `gpt-4o-mini` — intent parsing and result explanations
-- **Web Speech API** — browser-native voice input (en-GB)
+- **OpenAI Realtime (WebRTC)** — voice search; the browser opens a peer connection using a short-lived ephemeral token minted by `/api/voice/session` (`OPENAI_API_KEY` never leaves the server)
 - **Laravel + MariaDB** (Phase 2) — backend API and property database
 
 ## Getting started
@@ -47,15 +47,19 @@ app/
   api/
     search/route.ts         # POST /api/search — intent parse + property lookup
     property/[id]/route.ts  # GET  /api/property/:id
-    enquiries/route.ts      # POST /api/enquiries — proxies to Laravel
+    enquiries/route.ts      # POST /api/enquiries — proxies to Laravel (Phase 2)
+    voice/session/route.ts  # POST /api/voice/session — mints OpenAI Realtime ephemeral token
+    health/route.ts         # GET  /api/health — env + Laravel connectivity check
 
 components/
   PropertyCard.tsx          # Search result card
-  VoiceSearch.tsx           # Web Speech API wrapper (client-only)
+  VoiceSearch.tsx           # OpenAI Realtime WebRTC voice client (client-only)
 
 lib/
   openai.ts                 # parseIntent() + generateExplanations()
-  properties.ts             # In-memory dataset (11 properties, Phase 1)
+  properties.ts             # In-memory dataset (11 properties, Phase 1) + scoring
+  persona.ts                # Isla's search + voice system prompts
+  rate-limit.ts             # In-memory rate limiting + same-origin guard for API routes
 ```
 
 **Phase 1** (current): single-process Next.js with an in-memory dataset.  

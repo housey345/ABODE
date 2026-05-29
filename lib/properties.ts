@@ -313,6 +313,34 @@ export function searchProperties(filters: SearchFilters): SearchResult[] {
       }
     }
 
+    if (filters.min_price !== undefined) {
+      // At least some homes need to reach the requested floor.
+      if (prop.price_max >= filters.min_price) {
+        score += 10;
+        reasons.push(`homes up to £${(prop.price_max / 1000).toFixed(0)}k`);
+      } else {
+        misses.push("price range");
+        score -= 60;
+      }
+    }
+
+    if (filters.keywords?.length) {
+      const text = `${prop.bedrooms_text} ${prop.name} ${prop.developer}`.toLowerCase();
+      if (filters.keywords.includes("apartment")) {
+        if (text.includes("apartment")) { score += 15; reasons.push("apartments available"); }
+        else score -= 10;
+      }
+      if (filters.keywords.includes("house")) {
+        if (text.includes("house") || text.includes("townhouse")) { score += 15; reasons.push("houses available"); }
+        else score -= 10;
+      }
+      // "luxury" leans on the upper end of the range.
+      if (filters.keywords.includes("luxury") && prop.price_max >= 500000) {
+        score += 10;
+        reasons.push("premium homes in the range");
+      }
+    }
+
     if (filters.near?.includes("school") && prop.nearest_school) {
       if (prop.nearest_school.km <= 0.5) {
         score += 40;

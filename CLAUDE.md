@@ -21,7 +21,7 @@ No test runner is configured.
 | `LARAVEL_API_BASE_URL` | Base URL of the Laravel backend (e.g. `https://api.abode.co.uk`). Absent → Phase 1 in-memory mode. |
 | `ABODE_API_TOKEN` | Shared bearer token for Next.js → Laravel calls. Required when `LARAVEL_API_BASE_URL` is set. |
 
-The `openai` npm package is listed in `package.json` but is **not currently used** — `lib/openai.ts` calls the REST API directly via `fetch`. It's kept for Phase 2, which needs the SDK's Realtime WebRTC client (`openai.beta.realtime`) for voice. Don't remove it.
+The `openai` npm package is listed in `package.json` but is **not currently used** — `lib/openai.ts` calls the REST API directly via `fetch`. It's kept for future SDK features. Don't remove it.
 
 ## Architecture
 
@@ -33,18 +33,28 @@ This is **Phase 1** of ABODE: a single-process Next.js 15 App Router demo with a
 
 1. User submits a query (typed or voice) on `app/page.tsx` → `router.push('/results?q=...')`.
 2. `app/results/page.tsx` POSTs `{ query }` to `/api/search`.
-3. `app/api/search/route.ts` calls `parseIntent(query)` (`lib/openai.ts`, calls the OpenAI REST API directly via `fetch` using `gpt-4o-mini` with `response_format: json_object`, fallback to regex).
+3. `app/api/search/route.ts` calls `parseIntent(query)` (`lib/openai.ts`, calls the OpenAI REST API directly via `fetch` using `gpt-4o-mini` with `response_format: json_object`, fallback to regex). The system prompt is `ISLA.searchSystemPrompt` from `lib/persona.ts`.
 4. **Phase 1 mode** (no `LARAVEL_API_BASE_URL`): Parsed `SearchFilters` are run through `searchProperties()` — a scoring pass over the static array, returning ranked `{ property, score, explanation }`. The API returns at most 8 results. **Phase 2 mode** (`LARAVEL_API_BASE_URL` + `ABODE_API_TOKEN` set): filters are forwarded to `POST {LARAVEL_BASE}/api/search`; the returned results are passed to `generateExplanations()` (a second `gpt-4o-mini` call that writes one sentence per property) before responding. Falls back to Phase 1 dataset on any Laravel error.
 5. Results render via `components/PropertyCard.tsx`. The single property page `app/property/[id]/page.tsx` fetches `/api/property/[id]`, which looks the ID up in the in-memory array (Phase 1) or forwards to `GET {LARAVEL_BASE}/api/property/{id}` (Phase 2).
 6. `app/api/enquiries/route.ts` — `POST /api/enquiries` proxies enquiry form submissions to `POST {LARAVEL_BASE}/api/enquiries`. Returns `503` if Laravel env vars are absent.
+7. `app/api/health/route.ts` — `GET /api/health` checks env var presence and pings `{LARAVEL_BASE}/api/health`. Useful for diagnosing Phase 2 connectivity; returns `{ ok, checks }` with HTTP 200/503.
 
 `next.config.mjs` whitelists `www.newhomesforsale.co.uk` as a remote image hostname. Add any new external image sources there.
+
+`lib/persona.ts` exports `ISLA` — the `searchSystemPrompt` (used by `parseIntent`) and `voiceSystemPrompt` (used by `/api/voice/session`). Edit here to change Isla's behaviour across both paths.
 
 `lib/properties.ts` is the **single source of truth** for the 11-property demo dataset. IDs are the original scraper IDs (`26129`, `29137`, …) and match the image directories under `public/images/{id}/`. Keep those IDs stable — Phase 2 reuses them as the MariaDB primary key.
 
 ### Voice search
 
-`components/VoiceSearch.tsx` wraps the browser **Web Speech API** (`window.SpeechRecognition` / `webkitSpeechRecognition`, `lang: "en-GB"`). It's loaded with `next/dynamic({ ssr: false })` from both the home and results pages because it touches `window`. Phase 2 replaces this entire component with an OpenAI Realtime WebRTC client brokered by a new `/api/voice/session` route; until then, the typed-input fallback is the supported path on browsers without SpeechRecognition (Firefox, etc.) — `VoiceSearch` returns `null` when unsupported.
+`components/VoiceSearch.tsx` uses **OpenAI Realtime WebRTC** — it is loaded with `next/dynamic({ ssr: false })` from both the home and results pages because it touches `window`. The flow:
+
+1. Browser POSTs to `/api/voice/session` (server-side), which mints a short-lived ephemeral token from `POST https://api.openai.com/v1/realtime/client_secrets` — `OPENAI_API_KEY` never leaves the server.
+2. Browser opens an `RTCPeerConnection`, adds the mic track, creates a data channel `"oai-events"`, and performs an SDP offer/answer handshake directly with `https://api.openai.com/v1/realtime/calls` using the ephemeral token.
+3. On `session.created`, the client sends a `session.update` configuring `gpt-4o-mini-transcribe` for input transcription.
+4. When the user stops speaking (`input_audio_buffer.speech_stopped`), status switches to `"processing"`. On `conversation.item.input_audio_transcription_completed`, the transcript is passed to `onTranscript()` and the WebRTC session tears down.
+
+`/api/voice/session` returns `503` if `OPENAI_API_KEY` is absent. If the key is missing, the mic button still renders but shows an error on tap. The Isla voice prompt lives in `lib/persona.ts` (`ISLA.voiceSystemPrompt`).
 
 ### Scoring (`searchProperties`)
 
@@ -54,7 +64,7 @@ Each property starts at 100 and is adjusted by hard-coded weights for bedroom ma
 
 The visual system is editorial / architectural luxury, codified in `abode_brand_spec.md`. Tailwind tokens in `tailwind.config.ts` mirror it:
 
-- **Colours:** `brand-charcoal` `#1B2B2B`, `brand-gold` `#C8A066`, `brand-gold-light` `#D4B07A` (hover states), `brand-ivory` `#F6F3EF`, `brand-stone` `#E7E1D9`, `brand-grey` `#6B6B6B`. Also exposed as CSS vars (`--abode-gold`, etc.) in `app/globals.css`. The config also defines legacy aliases (`brand-dark`, `brand-navy`, `brand-cream`, `brand-muted`) — use the canonical names above in new code.
+- **Colours:** `brand-charcoal` `#1B2B2B`, `brand-gold` `#C8A066`, `brand-gold-light` `#D4B07A` (hover states), `brand-ivory` `#F6F3EF`, `brand-stone` `#E7E1D9`, `brand-grey` `#6B6B6B`. Also exposed as CSS vars (`--abode-gold`, etc.) in `app/globals.css`. Use these canonical names only — the former legacy aliases (`brand-dark`, `brand-navy`, `brand-cream`, `brand-muted`) have been removed.
 - **Type:** `font-display` = Cormorant Garamond (headlines, italics for the gold accent words like *perfect*), `font-sans` = Montserrat (UI, eyebrows, all caps with wide tracking). Both load via `next/font/google` in `app/layout.tsx` as CSS variables `--font-cormorant` / `--font-montserrat`.
 - **Utilities in `globals.css`:** `.eyebrow` (10px uppercase, 0.3em tracking), `.hairline` / `.hairline-dark` / `.hairline-gold` (1px rules), `.grain` (SVG-noise overlay on dark surfaces), `.gold-underline` (animated hover), `.rise-in` (staggered entrance — use `animationDelay` for sequencing), `.shimmer-bg` (skeleton loading pulse), `.glass` / `.glass-light` (frosted-glass panel), `.vertical-rule` (rotated masthead label), `.scrollbar-none` (hide scrollbar on chip rails), `.text-gradient` (ivory-to-gold gradient text).
 - **Tailwind animations:** `animate-fade-in`, `animate-slide-up` (both 0.9 s, used for page elements), `animate-shimmer` (loading skeletons — prefer `.shimmer-bg` utility instead), `animate-ken-burns` (hero image slow-zoom), `animate-pulse-ring` (voice recording indicator). Stagger cards with inline `animationDelay` and `animationFillMode: "both"`.

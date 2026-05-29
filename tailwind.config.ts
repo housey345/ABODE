@@ -10,21 +10,17 @@ const config: Config = {
       colors: {
         brand: {
           charcoal: "#1B2B2B",
-          dark: "#1B2B2B",
-          navy: "#1B2B2B",
           gold: "#C8A066",
           "gold-light": "#D4B07A",
           stone: "#E7E1D9",
           ivory: "#F6F3EF",
-          cream: "#F6F3EF",
           grey: "#6B6B6B",
-          muted: "#6B6B6B",
         },
       },
       fontFamily: {
         sans: ["var(--font-montserrat)", "system-ui", "sans-serif"],
         display: ["var(--font-cormorant)", "Georgia", "serif"],
-        mono: ["var(--font-montserrat)", "monospace"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       animation: {
         "pulse-ring": "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",

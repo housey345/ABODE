@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -25,7 +25,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
-  const desktopInputRef = useRef<HTMLInputElement>(null);
 
   const featured = FEATURED_IDS
     .map((id) => properties.find((p) => p.id === id))
@@ -243,7 +242,6 @@ export default function HomePage() {
                   }}
                 >
                   <input
-                    ref={desktopInputRef}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Describe what you're looking for…"

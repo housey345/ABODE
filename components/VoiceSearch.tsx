@@ -29,10 +29,6 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled }: Prop
   const islaTextRef = useRef<string>("");
   const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    console.log("[Isla] VoiceSearch mounted");
-  }, []);
-
   const teardown = useCallback(() => {
     if (processingTimerRef.current) {
       clearTimeout(processingTimerRef.current);
@@ -75,34 +71,27 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled }: Prop
 
     try {
       // 1. Mint ephemeral token from our server — OPENAI_API_KEY stays server-side
-      console.log("[Isla] 1. fetching session token");
       const res = await fetch("/api/voice/session", { method: "POST" });
       if (!res.ok) {
         const body = await res.json().catch(() => ({})) as { error?: string; detail?: string };
-        console.error("[Isla] session error:", body);
         throw new Error(body.detail ? `${body.detail}` : (body.error ?? "Voice search unavailable"));
       }
       const session = await res.json() as { value?: string };
       const key = session.value;
-      console.log("[Isla] 2. session token:", key ? `${key.slice(0, 8)}…` : "MISSING", "| full response keys:", Object.keys(session));
       if (!key) throw new Error("No session token returned");
 
       // 2. Microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      console.log("[Isla] 3. mic acquired");
 
       // 3. Peer connection — add mic track
       const pc = new RTCPeerConnection();
       pcRef.current = pc;
       stream.getAudioTracks().forEach(t => pc.addTrack(t, stream));
-      pc.oniceconnectionstatechange = () => console.log("[Isla] ICE:", pc.iceConnectionState);
-      pc.onconnectionstatechange = () => console.log("[Isla] PC:", pc.connectionState);
 
       // 4. Data channel — shared message handler used for both browser- and server-created channels
       const onDcMessage = (e: MessageEvent) => {
         const ev = JSON.parse(e.data as string) as RealtimeEvent;
-        console.log("[Isla DC]", ev.type, ev);
 
         // Server is ready — now safe to configure transcription and start listening
         if (ev.type === "session.created") {
@@ -177,14 +166,10 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled }: Prop
 
       // Browser creates the DC so it appears in the SDP offer
       const dc = pc.createDataChannel("oai-events");
-      dc.onopen = () => {
-        console.log("[Isla DC] browser DC open");
-        activateChannel(dc);
-      };
+      dc.onopen = () => activateChannel(dc);
 
       // OpenAI may also push its own DC — wire the same handler if so
       pc.ondatachannel = (e) => {
-        console.log("[Isla DC] server DC:", e.channel.label);
         if (e.channel.readyState === "open") {
           activateChannel(e.channel);
         } else {
@@ -195,7 +180,6 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled }: Prop
       // 5. SDP offer/answer handshake directly with OpenAI using the ephemeral key
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      console.log("[Isla] 4. SDP offer created, sending to OpenAI");
 
       const sdpRes = await fetch("https://api.openai.com/v1/realtime/calls", {
         method: "POST",
@@ -206,18 +190,15 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled }: Prop
         body: offer.sdp,
       });
 
-      console.log("[Isla] 5. SDP response:", sdpRes.status, sdpRes.ok ? "ok" : "FAILED");
       if (!sdpRes.ok) throw new Error("WebRTC handshake failed");
       const answerSdp = await sdpRes.text();
-      console.log("[Isla] 6. SDP answer received, setting remote description");
       await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
-      console.log("[Isla] 7. remote description set — waiting for DC open");
 
     } catch (err) {
       teardown();
       setError(err instanceof Error ? err.message : "Voice search unavailable");
     }
-  }, [status, teardown, setError, onTranscript]);
+  }, [status, teardown, setError, onTranscript, onIslaText]);
 
   // Clean up WebRTC on unmount (e.g. page navigation mid-session)
   useEffect(() => () => { teardown(); }, [teardown]);
@@ -228,7 +209,6 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled }: Prop
   const busy = connecting || processing;
 
   const handleMicClick = () => {
-    console.log("[Isla] mic click, status:", status);
     if (status === "idle") start();
     else if (listening) stopMic();
     else teardown();

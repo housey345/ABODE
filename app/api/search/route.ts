@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { parseIntent, generateExplanations, type LaravelSearchResult } from "@/lib/openai";
 import { searchProperties } from "@/lib/properties";
 import type { Property } from "@/lib/properties";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const LARAVEL_BASE = process.env.LARAVEL_API_BASE_URL;
 const API_TOKEN = process.env.ABODE_API_TOKEN;
@@ -25,6 +26,10 @@ function buildPoiDistances(distances: LaravelSearchResult["distances"]): Partial
 }
 
 export async function POST(req: NextRequest) {
+  // Each search can trigger up to two paid OpenAI calls — throttle abuse.
+  const limited = checkRateLimit(req, { key: "search", limit: 30, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const { query } = await req.json();
 
@@ -65,7 +70,6 @@ export async function POST(req: NextRequest) {
       property: { ...r.property, ...buildPoiDistances(r.distances) } as Property,
       score: 100,
       explanation: explanations[i] ?? "",
-      distances: r.distances,
     }));
 
     return NextResponse.json({ intent, results, total: results.length });
