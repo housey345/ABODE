@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -24,6 +24,7 @@ export default function HomePage() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const featured = FEATURED_IDS
@@ -234,7 +235,8 @@ export default function HomePage() {
 
               <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="w-full">
                 <div
-                  className="flex items-center gap-3 px-6 py-5 w-full"
+                  onClick={() => searchInputRef.current?.focus()}
+                  className="flex items-center gap-3 px-6 py-5 w-full cursor-text"
                   style={{
                     background: "rgba(255,255,255,0.07)",
                     backdropFilter: "blur(24px)",
@@ -243,6 +245,7 @@ export default function HomePage() {
                   }}
                 >
                   <input
+                    ref={searchInputRef}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onClick={(e) => e.currentTarget.select()}
