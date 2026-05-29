@@ -208,6 +208,10 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled }: Prop
   const processing = status === "processing";
   const busy = connecting || processing;
 
+  // Subtle rings invite a tap when idle and signal active capture when listening
+  const showRings = !disabled && (status === "idle" || listening);
+  const ringColor = listening ? "var(--abode-error)" : "var(--abode-gold)";
+
   const handleMicClick = () => {
     if (status === "idle") start();
     else if (listening) stopMic();
@@ -219,17 +223,44 @@ export default function VoiceSearch({ onTranscript, onIslaText, disabled }: Prop
       <span className="text-white text-xs font-sans font-semibold tracking-[0.22em] uppercase">
         {errorMsg ?? (connecting ? "Connecting…" : processing ? "Searching…" : listening ? "Tap to Stop" : "Ask Isla")}
       </span>
-      <button
-        type="button"
-        onClick={handleMicClick}
-        disabled={disabled || busy}
-        aria-label={listening ? "Stop listening" : "Start voice search"}
-        className={`relative flex items-center justify-center w-20 h-20 rounded-full transition-colors duration-300 outline-none focus:outline-none
-          ${disabled || busy ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-        style={{ background: listening ? "var(--abode-error)" : "var(--abode-gold)" }}
-      >
-        {listening ? <WaveformIcon size={30} /> : processing ? <span className="w-6 h-6 border-2 border-white border-t-transparent animate-spin rounded-full" /> : <span className="animate-pulse-ring inline-flex"><MicIcon size={30} /></span>}
-      </button>
+      <div className="relative flex items-center justify-center w-20 h-20">
+        {showRings && (
+          <>
+            {/* Soft radial glow that gently breathes behind the button */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-[-30%] rounded-full animate-glow-breathe"
+              style={{
+                background: `radial-gradient(circle, ${ringColor} 0%, transparent 65%)`,
+                opacity: 0.4,
+              }}
+            />
+            {/* Concentric hairline rings radiating outward */}
+            {[0, 1, 2].map(i => (
+              <span
+                key={i}
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-full animate-ripple"
+                style={{
+                  border: `1px solid ${ringColor}`,
+                  animationDelay: `${i * 1.5}s`,
+                }}
+              />
+            ))}
+          </>
+        )}
+        <button
+          type="button"
+          onClick={handleMicClick}
+          disabled={disabled || busy}
+          aria-label={listening ? "Stop listening" : "Start voice search"}
+          className={`relative flex items-center justify-center w-20 h-20 rounded-full transition-colors duration-300 outline-none focus:outline-none
+            ${disabled || busy ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          style={{ background: listening ? "var(--abode-error)" : "var(--abode-gold)" }}
+        >
+          {listening ? <WaveformIcon size={30} /> : processing ? <span className="w-6 h-6 border-2 border-white border-t-transparent animate-spin rounded-full" /> : <MicIcon size={30} />}
+        </button>
+      </div>
       {interimText && (
         <p className="text-white/60 text-xs font-sans text-center max-w-xs truncate">{interimText}</p>
       )}

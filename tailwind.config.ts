@@ -24,6 +24,8 @@ const config: Config = {
       },
       animation: {
         "pulse-ring": "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "ripple": "ripple 4.5s cubic-bezier(0.2, 0.7, 0.2, 1) infinite",
+        "glow-breathe": "glow-breathe 4s ease-in-out infinite",
         "fade-in": "fade-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards",
         "slide-up": "slide-up 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards",
         "shimmer": "shimmer 1.8s infinite",
@@ -33,6 +35,14 @@ const config: Config = {
         "pulse-ring": {
           "0%, 100%": { transform: "scale(1)", opacity: "1" },
           "50%": { transform: "scale(1.18)", opacity: "0.45" },
+        },
+        "ripple": {
+          "0%": { transform: "scale(1)", opacity: "0.5" },
+          "100%": { transform: "scale(2.1)", opacity: "0" },
+        },
+        "glow-breathe": {
+          "0%, 100%": { opacity: "0.35", transform: "scale(1)" },
+          "50%": { opacity: "0.7", transform: "scale(1.12)" },
         },
         "fade-in": {
           from: { opacity: "0" },

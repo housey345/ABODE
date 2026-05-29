@@ -264,25 +264,10 @@ function ResultsHeader({ count }: { count: number; query: string }) {
 
 function LoadingState() {
   return (
-    <div className="space-y-6">
-      <div className="h-28 shimmer-bg" />
-      <div className="h-6 w-48 shimmer-bg mt-10" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 lg:gap-8 mt-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="overflow-hidden border border-brand-stone">
-            <div className="aspect-[5/4] shimmer-bg" />
-            <div className="p-5 bg-white space-y-3">
-              <div className="h-3 w-1/3 shimmer-bg" />
-              <div className="h-5 w-3/4 shimmer-bg" />
-              <div className="h-3 w-1/2 shimmer-bg" />
-              <div className="flex gap-4 pt-3">
-                <div className="h-7 w-12 shimmer-bg" />
-                <div className="h-7 w-12 shimmer-bg" />
-                <div className="h-7 w-12 shimmer-bg" />
-              </div>
-            </div>
-          </div>
-        ))}
+    <div className="flex items-center justify-center py-32 lg:py-44">
+      <div className="text-center">
+        <div className="w-10 h-10 border border-brand-gold border-t-transparent animate-spin mx-auto mb-6" />
+        <p className="eyebrow text-brand-grey">Isla is searching</p>
       </div>
     </div>
   );

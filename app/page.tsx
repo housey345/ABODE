@@ -161,6 +161,7 @@ export default function HomePage() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
+                  onClick={(e) => e.currentTarget.select()}
                   placeholder="Describe your ideal home…"
                   className="flex-1 bg-transparent text-white placeholder:text-white/45 text-[15px] font-sans outline-none tracking-wide"
                   disabled={loading}
@@ -244,6 +245,7 @@ export default function HomePage() {
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
+                    onClick={(e) => e.currentTarget.select()}
                     placeholder="Describe what you're looking for…"
                     className="flex-1 bg-transparent text-white placeholder:text-white/45 text-[15px] font-sans outline-none tracking-wide"
                     disabled={loading}
